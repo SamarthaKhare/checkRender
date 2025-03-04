@@ -21,14 +21,20 @@ def generate_response(question: str):
     return f"Generated response for: {question}"
 
 @app.post("/chat")
-def chat(request: ChatRequest):
-    response = generate_response(request.query)
-    if response:
-        return {"answer": response}
-    else:
-        raise HTTPException(status_code=500, detail="Error generating response")
-
+async def chat(request: ChatRequest):
+    try:
+        logging.info(f"Received request: {request}")
+        response = generate_response(request.query)
+        
+        if response:
+            return {"answer": response}
+        else:
+            raise HTTPException(status_code=500, detail="Error generating response")
+    
+    except Exception as e:
+        logging.error(f"Internal Server Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 # Run the server (for local testing)
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
